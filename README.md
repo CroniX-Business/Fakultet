@@ -1,1 +1,1 @@
-# Faks
+# Predmeti sa fakulteta
