@@ -1,76 +1,78 @@
-#include <stdio.h>
-#include <math.h>
-#include <pthread.h>
+#include<stdio.h>
+#include<math.h>
+#include<pthread.h>
+#include <stdbool.h>
 
-#define ARRAY_SIZE 5
+double array[5] = {2, 4, 6, 8, 10};
 
-int array[ARRAY_SIZE] = {2, 4, 6, 8, 10};
+int flag[2] = {0, 0};
 int turn = 0;
-int interested[2] = {0, 0};
 
-void *squareElements(void *arg) {
-    int self = *((int *)arg);
-
-    while (1) {
-        interested[self] = 1;
-        turn = 1 - self;
-
-        while (interested[1 - self] && turn == 1 - self) {
-            // Čekaj drugu nit
-        }
-
-        for (int i = 0; i < ARRAY_SIZE; i++) {
+void* squareEl(void* arg){
+    int i = *((int*) arg);
+    
+    while(1){
+        flag[i] = 1;
+        turn = 1 - i;
+        while(flag[1 - i] && turn == 1 - i);
+            
+        for (int i = 0; i < 5; i++) {
             array[i] = array[i] * array[i];
         }
-        
+            
         printf("Kvadrirano polje: ");
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            printf("%d ", array[i]);
+        for (int i = 0; i < 5; i++) {
+            printf("%.2f ", array[i]);
         }
         printf("\n");
-
-        interested[self] = 0;
+            
+        flag[i] = 0;
+        sleep(1);
     }
-    
-    pthread_exit(NULL);
+
+    return NULL;
 }
 
-void *sqrtElements(void *arg) {
-    int self = *((int *)arg);
-
-    while (1) {
-        interested[self] = 1;
-        turn = 1 - self;
-
-        while (interested[1 - self] && turn == 1 - self) {
-            // Čekaj drugu nit
-        }
-
-        for (int i = 0; i < ARRAY_SIZE; i++) {
+void* sqrtEl(void* arg){
+    int i = *((int*) arg);
+    while(1){
+        flag[i] = 1;
+        turn = 1 - i;
+        while(flag[1 - i] && turn == 1 - i);
+            
+        for (int i = 0; i < 5; i++) {
             array[i] = sqrt(array[i]);
         }
-        
+            
         printf("Korijenovano polje: ");
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            printf("%d ", array[i]);
+        for (int i = 0; i < 5; i++) {
+            printf("%.2f ", array[i]);
         }
         printf("\n");
-
-        interested[self] = 0;
+            
+        flag[i] = 0;
+        sleep(1);
     }
     
-    pthread_exit(NULL);
+    return NULL;
 }
 
-int main() {
-    pthread_t squareThread, sqrtThread;
-    int threadId[2] = {0, 1};
+int main(){
+    pthread_t threads[2];
     
-    pthread_create(&squareThread, NULL, squareElements, (void *)&threadId[0]);
-    pthread_create(&sqrtThread, NULL, sqrtElements, (void *)&threadId[1]);
+    int thread_args[2] = {0, 1};
     
-    pthread_join(squareThread, NULL);
-    pthread_join(sqrtThread, NULL);
+    pthread_create(&threads[0], NULL, squareEl, &thread_args[0]);
+    pthread_create(&threads[1], NULL, sqrtEl, &thread_args[1]);
+    
+    for(int i=0;i<10;i++){
+        flag[0] = 1;
+        turn = 1;
+        while(flag[1] && turn == 1);
+        flag[0] = 0;
+    }
+    pthread_join(threads[0], NULL);
+    pthread_join(threads[1], NULL);
     
     return 0;
 }
